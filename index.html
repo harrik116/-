@@ -155,7 +155,7 @@ function monthStats(){
     const d=S.days[k];
     if(d.off){ offDone+=d.done||0; continue; }
     const dn=d.done||0, pl=d.planned||0;
-    if(dn>0||(pl>0&&k<=today)){ worked++; done+=dn; }
+    if(dn>0||d.work||(pl>0&&k<=today)){ worked++; done+=dn; }
   }
   const total=done+offDone;
   const coef=worked?total/worked:0;
@@ -191,7 +191,7 @@ function viewCal(){
     const has=(x.planned||0)>0||(x.done||0)>0;
     let cls='',v='';
     if(x.off){ cls='off'; v=has?(x.done||0)+'/'+(x.planned||0):'вых'; }
-    else if(has){
+    else if(has||x.work){
       v=(x.done||0)+'/'+(x.planned||0);
       if((x.planned||0)>0&&(x.done||0)>=x.planned) cls='full';
       else if((x.done||0)>0) cls='part';
@@ -259,7 +259,8 @@ function sheetHtml(){
     <h3>${d} ${MONTHS_G[m-1]}, ${WD[new Date(y,m-1,d).getDay()]}</h3>
     <div class="step"><span class="lab">Наряды по плану</span>${chips('planned',x.planned||0)}</div>
     <div class="step"><span class="lab">Сделано</span>${chips('done',x.done||0)}</div>
-    <button class="btn block${x.off?' primary':''}" data-a="off">${x.off?'Выходной — снять отметку':'Отметить выходным'}</button>
+    <div class="btns" style="margin-top:0"><button class="btn${x.work?' primary':''}" data-a="work">Рабочая смена</button><button class="btn${x.off?' primary':''}" data-a="off">Выходной</button></div>
+    ${x.work?'<p class="offnote">Смена засчитана, даже если сделано 0 нарядов.</p>':''}
     ${x.off?'<p class="offnote">Выходной не считается сменой, но заявки за этот день идут в коэффициент и выплату.</p>':''}
     <div class="btns"><button class="btn danger" data-a="clearday">Очистить день</button><button class="btn primary" data-a="close">Готово</button></div>
   </div>`;
@@ -272,8 +273,8 @@ function render(){
 
 /* ---- действия ---- */
 function setDay(k,patch){
-  const x=Object.assign({planned:0,done:0,off:false},S.days[k]||{},patch);
-  if(!x.off&&!x.planned&&!x.done) delete S.days[k]; else S.days[k]=x;
+  const x=Object.assign({planned:0,done:0,off:false,work:false},S.days[k]||{},patch);
+  if(!x.off&&!x.work&&!x.planned&&!x.done) delete S.days[k]; else S.days[k]=x;
   save(); render();
 }
 function handle(a,t){
@@ -284,7 +285,8 @@ function handle(a,t){
     case 'day': ui.sheet={key:t.dataset.k}; render(); break;
     case 'close': ui.sheet=null; render(); break;
     case 'set': setDay(ui.sheet.key,{[t.dataset.f]:Number(t.dataset.v)}); break;
-    case 'off': { const x=S.days[ui.sheet.key]||{}; setDay(ui.sheet.key,{off:!x.off}); break; }
+    case 'off': { const x=S.days[ui.sheet.key]||{}; setDay(ui.sheet.key,{off:!x.off,work:false}); break; }
+    case 'work': { const x=S.days[ui.sheet.key]||{}; setDay(ui.sheet.key,{work:!x.work,off:false}); break; }
     case 'clearday': delete S.days[ui.sheet.key]; ui.sheet=null; save(); render(); break;
     case 'addtier': S.tiers.push({min:0,rate:0}); save(); render(); break;
     case 'deltier': S.tiers.splice(Number(t.dataset.i),1); save(); render(); break;
