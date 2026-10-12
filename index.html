@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B5FC1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Наряды">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Наряды</title>
+<style>
+:root{
+  --bg:#EDF1F3; --surface:#FFFFFF; --ink:#16252E; --muted:#5E7280; --line:#D3DCE1;
+  --blue:#1B5FC1; --blue-soft:#DCE8F8;
+  --green:#2C8A55; --green-soft:#D9F0E2;
+  --amber:#8F5B00; --amber-soft:#FBEBC8;
+  --red:#B3372D; --off:#DDE3E7;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.35}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom));padding-top:env(safe-area-inset-top)}
+.wrap{max-width:480px;margin:0 auto;padding:14px 14px 0}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.warn{background:#F8DDDA;color:#7A1F18;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+
+.summary{background:var(--surface);border-radius:14px;padding:16px 16px 14px;border:1px solid var(--line)}
+.coef-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.coef-label{font-size:13px;color:var(--muted)}
+.coef{font-size:56px;font-weight:700;letter-spacing:-1.5px;line-height:1}
+.rate-box{text-align:right}
+.rate{font-size:26px;font-weight:700;line-height:1.1}
+.ladder{position:relative;height:46px;margin:14px 6px 0}
+.ladder .track{position:absolute;left:0;right:0;top:6px;height:8px;border-radius:4px;background:var(--off)}
+.ladder .fill{position:absolute;left:0;top:6px;height:8px;border-radius:4px;background:var(--blue)}
+.tick{position:absolute;top:2px;transform:translateX(-50%);text-align:center;font-size:12px;color:var(--muted);white-space:nowrap}
+.tick i{display:block;width:2px;height:16px;background:var(--ink);margin:0 auto 3px;border-radius:1px;opacity:.55}
+.tick.hit{color:var(--ink);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;padding-top:12px;border-top:1px solid var(--line)}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.hint{margin:10px 0 0;font-size:14px;color:var(--muted)}
+
+.nav{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}
+.nav h2{margin:0;font-size:18px}
+.nav button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:20px}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow div{text-align:center;font-size:12px;color:var(--muted);padding-bottom:2px}
+.cell{aspect-ratio:1/1.05;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:4px 3px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:12px}
+.cell .d{font-size:13px;font-weight:600}
+.cell .v{font-size:13px;font-weight:700;min-height:16px}
+.cell.blank{border:0;background:none}
+.cell.full{background:var(--green-soft);border-color:#9ED2B4;color:#17603A}
+.cell.part{background:var(--amber-soft);border-color:#E7C77C;color:var(--amber)}
+.cell.plan{background:var(--blue-soft);border-color:#B3CBEF;color:#164C9C}
+.cell.off{background:var(--off);color:var(--muted)}
+.cell.off .v{font-weight:600;font-size:12px}
+.cell.today{outline:2px solid var(--ink);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:12px 2px 0;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.legend .l1::before{background:var(--green-soft);border:1px solid #9ED2B4}
+.legend .l2::before{background:var(--amber-soft);border:1px solid #E7C77C}
+.legend .l3::before{background:var(--blue-soft);border:1px solid #B3CBEF}
+.legend .l4::before{background:var(--off)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.h{margin:0 0 10px;font-size:18px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.danger{color:var(--red);border-color:#E8B7B2}
+.btn.sm{min-height:40px;padding:0 12px;font-size:15px}
+.btn.block{width:100%}
+.field{display:block;margin-bottom:12px}
+.field>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.field input{width:100%;height:48px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff}
+.field input:focus,.btn:focus-visible,.cell:focus-visible,.tab:focus-visible,.chip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.x{width:40px;height:40px;border-radius:10px;border:0;background:none;color:var(--muted);font-size:18px}
+.tier{display:grid;grid-template-columns:1fr 1fr 44px;gap:8px;align-items:end;margin-bottom:8px}
+.tier .field{margin:0}
+
+.back{position:fixed;inset:0;background:rgba(22,37,46,.45);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;max-height:88vh;overflow:auto;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+.sheet h3{margin:0 0 14px;font-size:19px}
+.step{margin-bottom:14px}
+.step .lab{display:block;font-size:15px;color:var(--muted);margin-bottom:6px}
+.chips{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.chip{height:46px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.offnote{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.sheet .btns{display:flex;gap:8px;margin-top:14px}
+.sheet .btns .btn{flex:1}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr)}
+.tab{height:58px;border:0;background:none;font-size:15px;font-weight:600;color:var(--muted);position:relative}
+.tab.on{color:var(--blue)}
+.tab.on::after{content:"";position:absolute;left:24%;right:24%;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--blue)}
+@media (prefers-reduced-motion:no-preference){
+  .sheet{animation:up .18s ease-out}
+  @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p class="muted" style="padding:24px 4px">Загрузка…</p></div>
+<nav class="tabs" id="tabs"></nav>
+<script>
+(function(){
+'use strict';
+const KEY='naryady-v1';
+const DEF={days:{},tiers:[{min:6,rate:600},{min:5,rate:500},{min:4,rate:450}],below:0};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let S=clone(DEF), saveOk=true;
+const now0=new Date();
+const ui={tab:'cal',y:now0.getFullYear(),m:now0.getMonth(),sheet:null};
+const app=document.getElementById('app'), tabsEl=document.getElementById('tabs');
+
+const pad=n=>String(n).padStart(2,'0');
+const tk=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const money=n=>Math.round(n).toLocaleString('ru-RU')+'\u00A0₽';
+const floor2=x=>(Math.floor(x*100+1e-6)/100).toFixed(2);
+const num=v=>{const n=parseFloat(String(v).replace(',','.').replace(/\s/g,''));return isFinite(n)?n:NaN};
+const plural=(n,a,b,c)=>{const m=Math.abs(n)%100,k=m%10;return m>10&&m<20?c:k===1?a:k>=2&&k<=4?b:c};
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS_G=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WD=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+
+/* ---- автосохранение: сразу после каждого изменения ---- */
+function save(){
+  const s=JSON.stringify(S); let ok=false;
+  try{ window.localStorage.setItem(KEY,s); ok=true; }catch(e){}
+  try{ if(window.storage){ window.storage.set(KEY,s).catch(()=>{}); ok=true; } }catch(e){}
+  saveOk=ok;
+}
+function adopt(d){ if(d&&typeof d==='object'&&d.days) S=Object.assign(clone(DEF),d); }
+try{ const v=window.localStorage.getItem(KEY); if(v) adopt(JSON.parse(v)); }catch(e){}
+async function loadAsync(){
+  try{ if(window.storage&&!window.localStorage.getItem(KEY)){ const r=await window.storage.get(KEY); if(r&&r.value){ adopt(JSON.parse(r.value)); render(); } } }catch(e){}
+}
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+/* ---- расчёт ---- */
+function monthStats(){
+  const pre=ui.y+'-'+pad(ui.m+1)+'-', today=tk(new Date());
+  let done=0, worked=0, offDone=0;
+  for(const k in S.days){
+    if(!k.startsWith(pre)) continue;
+    const d=S.days[k];
+    if(d.off){ offDone+=d.done||0; continue; }
+    const dn=d.done||0, pl=d.planned||0;
+    if(dn>0||(pl>0&&k<=today)){ worked++; done+=dn; }
+  }
+  const total=done+offDone;
+  const coef=worked?total/worked:0;
+  const tiers=[...S.tiers].filter(t=>t.min>0).sort((a,b)=>b.min-a.min);
+  const hit=tiers.find(t=>coef>=t.min-1e-9);
+  const rate=worked?(hit?hit.rate:(+S.below||0)):0;
+  let next=null;
+  if(worked){
+    const up=tiers.filter(t=>t.min>coef+1e-9).sort((a,b)=>a.min-b.min)[0];
+    if(up) next={min:up.min,rate:up.rate,need:Math.max(1,Math.ceil(up.min*worked-total-1e-9))};
+  }
+  return {done:total,worked,offDone,coef,rate,pay:total*rate,next,tiers};
+}
+
+/* ---- экраны ---- */
+function ladder(st){
+  const t=st.tiers; if(!t.length) return '';
+  const mins=t.map(x=>x.min), lo=Math.max(0,Math.min(...mins)-1), top=Math.max(...mins);
+  const hi=top+Math.max(0.5,(top-lo)*0.15);
+  const pos=v=>Math.min(100,Math.max(0,(v-lo)/(hi-lo)*100));
+  const ticks=t.map(x=>`<div class="tick${st.worked&&st.coef>=x.min-1e-9?' hit':''}" style="left:${pos(x.min)}%"><i></i>${x.min}<br>${x.rate}&nbsp;₽</div>`).join('');
+  return `<div class="ladder"><div class="track"></div><div class="fill" style="width:${pos(st.coef)}%"></div>${ticks}</div>`;
+}
+function viewCal(){
+  const st=monthStats();
+  const first=(new Date(ui.y,ui.m,1).getDay()+6)%7;
+  const dim=new Date(ui.y,ui.m+1,0).getDate();
+  const today=tk(new Date());
+  let cells='';
+  for(let i=0;i<first;i++) cells+='<div class="cell blank"></div>';
+  for(let d=1;d<=dim;d++){
+    const k=ui.y+'-'+pad(ui.m+1)+'-'+pad(d), x=S.days[k]||{};
+    const has=(x.planned||0)>0||(x.done||0)>0;
+    let cls='',v='';
+    if(x.off){ cls='off'; v=has?(x.done||0)+'/'+(x.planned||0):'вых'; }
+    else if(has){
+      v=(x.done||0)+'/'+(x.planned||0);
+      if((x.planned||0)>0&&(x.done||0)>=x.planned) cls='full';
+      else if((x.done||0)>0) cls='part';
+      else cls='plan';
+    }
+    cells+=`<button class="cell ${cls}${k===today?' today':''}" data-a="day" data-k="${k}"><span class="d">${d}</span><span class="v num">${v}</span></button>`;
+  }
+  const hint=st.worked===0
+    ? 'Нажмите на день и внесите наряды — коэффициент посчитается сам.'
+    : st.next
+      ? `Ещё ${st.next.need} ${plural(st.next.need,'заявка','заявки','заявок')} при тех же сменах — и ставка ${st.next.rate}\u00A0₽ (коэффициент ${st.next.min}).`
+      : 'Максимальная ставка уже достигнута.';
+  return `
+  ${saveOk?'':'<div class="warn">Сохранение недоступно в этом окне: данные пропадут при закрытии. Откройте приложение в Safari или добавьте его на экран «Домой».</div>'}
+  <div class="summary">
+    <div class="coef-row">
+      <div><div class="coef-label">Коэффициент</div><div class="coef num">${st.worked?floor2(st.coef):'0.00'}</div></div>
+      <div class="rate-box"><div class="coef-label">Ставка</div><div class="rate num">${money(st.rate)}</div><div class="coef-label">за заявку</div></div>
+    </div>
+    ${ladder(st)}
+    <div class="stats">
+      <div class="stat"><b class="num">${st.done}</b><span>заявок сделано</span></div>
+      <div class="stat"><b class="num">${st.worked}</b><span>рабочих смен</span></div>
+      <div class="stat"><b class="num">${money(st.pay)}</b><span>к выплате</span></div>
+    </div>
+    <p class="hint">${hint}</p>
+    ${st.offDone?`<p class="hint">Из них ${st.offDone} ${plural(st.offDone,'заявка','заявки','заявок')} сделано на выходных: они идут в коэффициент и выплату, а сами выходные сменами не считаются.</p>`:''}
+  </div>
+  <div class="nav">
+    <button data-a="mprev" aria-label="Предыдущий месяц">‹</button>
+    <h2>${MONTHS[ui.m]} ${ui.y}</h2>
+    <button data-a="mnext" aria-label="Следующий месяц">›</button>
+  </div>
+  <div class="dow">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(x=>`<div>${x}</div>`).join('')}</div>
+  <div class="grid">${cells}</div>
+  <div class="legend"><span class="l1">все сделаны</span><span class="l2">сделаны не все</span><span class="l3">запланировано</span><span class="l4">выходной</span></div>`;
+}
+function viewSet(){
+  const tiers=S.tiers.map((t,i)=>`<div class="tier">
+    <label class="field"><span>Коэффициент от</span><input inputmode="decimal" value="${t.min}" data-f="min" data-i="${i}"></label>
+    <label class="field"><span>₽ за заявку</span><input inputmode="decimal" value="${t.rate}" data-f="rate" data-i="${i}"></label>
+    <button class="x" data-a="deltier" data-i="${i}" aria-label="Убрать порог" style="height:48px">✕</button></div>`).join('');
+  return `
+  <div class="card">
+    <h2 class="h">Ставки за заявку</h2>
+    <p class="small muted" style="margin-top:-4px">Коэффициент — все заявки месяца (включая выходные), делённые на число рабочих смен. Ставка по нему применяется ко всем заявкам месяца.</p>
+    ${tiers}
+    <button class="btn sm block" data-a="addtier" style="margin-bottom:12px">Добавить порог</button>
+    <label class="field"><span>Ставка, если коэффициент ниже самого малого порога, ₽</span><input inputmode="decimal" value="${S.below}" data-f="below"></label>
+  </div>
+  <div class="card">
+    <h2 class="h">Копия данных</h2>
+    <p class="small muted" style="margin-top:-4px">Всё сохраняется само, прямо на телефоне. Копия нужна только для переноса на другой телефон или из старой версии: «Загрузить» принимает копию из прежнего приложения.</p>
+    <label class="field"><span>Данные</span><input id="bk" value=""></label>
+    <div class="row" style="gap:8px"><button class="btn sm block" data-a="export">Показать копию</button><button class="btn sm block" data-a="import">Загрузить</button></div>
+    <p class="small muted" id="bkmsg" style="margin-bottom:0"></p>
+  </div>`;
+}
+function sheetHtml(){
+  const s=ui.sheet; if(!s) return '';
+  const [y,m,d]=s.key.split('-').map(Number);
+  const x=S.days[s.key]||{};
+  const chips=(f,cur)=>{ const max=Math.max(12,cur); let h=''; for(let i=0;i<=max;i++) h+=`<button class="chip${i===cur?' on':''}" data-a="set" data-f="${f}" data-v="${i}">${i}</button>`; return `<div class="chips">${h}</div>`; };
+  return `<div class="back" data-a="close"></div><div class="sheet" role="dialog">
+    <h3>${d} ${MONTHS_G[m-1]}, ${WD[new Date(y,m-1,d).getDay()]}</h3>
+    <div class="step"><span class="lab">Наряды по плану</span>${chips('planned',x.planned||0)}</div>
+    <div class="step"><span class="lab">Сделано</span>${chips('done',x.done||0)}</div>
+    <button class="btn block${x.off?' primary':''}" data-a="off">${x.off?'Выходной — снять отметку':'Отметить выходным'}</button>
+    ${x.off?'<p class="offnote">Выходной не считается сменой, но заявки за этот день идут в коэффициент и выплату.</p>':''}
+    <div class="btns"><button class="btn danger" data-a="clearday">Очистить день</button><button class="btn primary" data-a="close">Готово</button></div>
+  </div>`;
+}
+function render(){
+  app.innerHTML=(ui.tab==='cal'?viewCal():viewSet())+sheetHtml();
+  const t=(id,l)=>`<button class="tab${ui.tab===id?' on':''}" data-a="tab" data-t="${id}">${l}</button>`;
+  tabsEl.innerHTML='<div>'+t('cal','Календарь')+t('set','Ставки')+'</div>';
+}
+
+/* ---- действия ---- */
+function setDay(k,patch){
+  const x=Object.assign({planned:0,done:0,off:false},S.days[k]||{},patch);
+  if(!x.off&&!x.planned&&!x.done) delete S.days[k]; else S.days[k]=x;
+  save(); render();
+}
+function handle(a,t){
+  switch(a){
+    case 'tab': ui.tab=t.dataset.t; render(); window.scrollTo(0,0); break;
+    case 'mprev': ui.m--; if(ui.m<0){ui.m=11;ui.y--} render(); break;
+    case 'mnext': ui.m++; if(ui.m>11){ui.m=0;ui.y++} render(); break;
+    case 'day': ui.sheet={key:t.dataset.k}; render(); break;
+    case 'close': ui.sheet=null; render(); break;
+    case 'set': setDay(ui.sheet.key,{[t.dataset.f]:Number(t.dataset.v)}); break;
+    case 'off': { const x=S.days[ui.sheet.key]||{}; setDay(ui.sheet.key,{off:!x.off}); break; }
+    case 'clearday': delete S.days[ui.sheet.key]; ui.sheet=null; save(); render(); break;
+    case 'addtier': S.tiers.push({min:0,rate:0}); save(); render(); break;
+    case 'deltier': S.tiers.splice(Number(t.dataset.i),1); save(); render(); break;
+    case 'export': { const b=document.getElementById('bk'); b.value=JSON.stringify({days:S.days,tiers:S.tiers,below:S.below}); b.focus(); b.select(); document.getElementById('bkmsg').textContent='Выделите текст, скопируйте и сохраните в надёжном месте.'; break; }
+    case 'import': {
+      const msg=document.getElementById('bkmsg');
+      try{
+        const o=JSON.parse(document.getElementById('bk').value);
+        if(!o||typeof o!=='object'||!o.days||typeof o.days!=='object') throw 0;
+        S.days=o.days;
+        if(Array.isArray(o.tiers)&&o.tiers.length){ S.tiers=o.tiers.map(x=>({min:+x.min||0,rate:+x.rate||0})); S.below=+o.below||0; }
+        save(); ui.tab='cal'; render();
+      }catch(e){ msg.textContent='Не удалось прочитать данные. Вставьте копию целиком.'; }
+      break;
+    }
+  }
+}
+document.addEventListener('click',e=>{ const t=e.target.closest('[data-a]'); if(t) handle(t.dataset.a,t); });
+app.addEventListener('change',e=>{
+  const el=e.target, f=el.dataset.f; if(!f) return;
+  const n=num(el.value); const val=isFinite(n)&&n>=0?n:0; el.value=val;
+  if(f==='below') S.below=val; else S.tiers[Number(el.dataset.i)][f]=val;
+  save();
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ui.sheet){ ui.sheet=null; render(); } });
+
+render();
+loadAsync();
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+})();
+</script>
+</body>
+</html>
